@@ -3,7 +3,8 @@ const fsp = fs.promises;
 const path = require('path');
 const fontkit = require('fontkit');
 const opentype = require('opentype.js');
-const { Font, woff2, woff, eot, ttf } = require('fonteditor-core');
+const { Font } = require('fonteditor-core');
+const wawoff2 = require('wawoff2');
 
 const SUPPORTED_INPUTS = new Set(['ttf', 'otf', 'woff', 'woff2', 'eot']);
 const SUPPORTED_OUTPUTS = new Set(['ttf', 'otf', 'woff', 'woff2']);
@@ -92,11 +93,21 @@ async function convertFont(inputPath, outputFormat, options = {}) {
 
   // Write target format
   const targetType = fonteditorTypeForExt(outFmt);
-  const outBuffer = font.write({
+  let outBuffer = font.write({
     type: targetType,
     hinting: true,
     deflate: targetType === 'woff' ? require('pako').deflate : undefined,
   });
+  // If producing woff2 and fonteditor-core can't encode fully on this platform, fallback to wasm encoder
+  if (targetType === 'woff2') {
+    try {
+      // font.write('ttf') returns ArrayBuffer/Uint8Array
+      const ttfBuffer = Buffer.from(font.write({ type: 'ttf', hinting: true }));
+      outBuffer = await wawoff2.compress(ttfBuffer);
+    } catch (e) {
+      // keep outBuffer from font.write if available
+    }
+  }
   await fsp.writeFile(outPath, Buffer.from(outBuffer));
 
   // Metadata and preview
