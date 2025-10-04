@@ -26,6 +26,11 @@ app.get('/api/health', (_req: Request, res: Response) => {
   res.json({ status: 'ok' });
 });
 
+// Conversion routes (JS router wired into TS server)
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const converterRouter = require('../routes/converter.js');
+app.use(converterRouter);
+
 // Upload endpoint (stores in /server/uploads via express-fileupload)
 app.post('/api/upload', async (req: Request, res: Response, next: NextFunction) => {
   try {
