@@ -23,6 +23,7 @@
     "openai": "^4.60.0",
     "pdf-lib": "^1.17.1",
     "sharp": "^0.33.4",
+    "jszip": "^3.10.1",
     "which": "^4.0.0"
   },
   "devDependencies": {
